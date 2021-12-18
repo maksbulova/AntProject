@@ -19,7 +19,7 @@ public class Ant : MonoBehaviour
     {
         feromoneMatrix = GameObject.FindObjectOfType<FeromoneMatrix>();
         behaviorState = BehaviorState.searching;
-        currentDirection = Vector2Int.up; // RandomDirection();
+        currentDirection = RandomDirection();
     }
 
     private void Update()
@@ -65,7 +65,7 @@ public class Ant : MonoBehaviour
         {
             float rotateAngle = i * Mathf.PI / 4;
             int rotatedX = Mathf.RoundToInt(currentDirection.x * Mathf.Cos(rotateAngle) + currentDirection.y * Mathf.Sin(rotateAngle));
-            int rotadedY = Mathf.RoundToInt(currentDirection.x * Mathf.Sin(rotateAngle) + currentDirection.y * Mathf.Cos(rotateAngle));
+            int rotadedY = Mathf.RoundToInt(-currentDirection.x * Mathf.Sin(rotateAngle) + currentDirection.y * Mathf.Cos(rotateAngle));
             Vector2Int newDirection = new Vector2Int(rotatedX, rotadedY);
 
             cellPosition = currentCellIndex + newDirection;

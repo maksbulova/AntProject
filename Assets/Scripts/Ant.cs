@@ -20,6 +20,7 @@ public class Ant : MonoBehaviour
         feromoneMatrix = GameObject.FindObjectOfType<FeromoneMatrix>();
         behaviorState = BehaviorState.searching;
         currentDirection = RandomDirection();
+        Debug.Log($"{gameObject.name} moves {currentDirection}");
     }
 
     private void Update()
@@ -54,35 +55,44 @@ public class Ant : MonoBehaviour
 
     public Vector2Int ChooseCell(int feromonType)
     {
-        int amount = (angle + 1) * 2 - 1;
-        Vector2Int[] possibleCells = new Vector2Int[amount];
-        float[] possibleFeromones = new float[amount]; 
+        // int amount = (angle + 1) * 2 - 1;
+        List<Vector2Int> possibleCells = new List<Vector2Int>();
+        List<float> possibleFeromones = new List<float>();
         Vector2Int currentCellIndex = feromoneMatrix.GetCellIndex(transform.position);
         Vector2Int cellPosition;
 
-
-        for (int i = -angle; i <= angle; i++)
+        do
         {
-            float rotateAngle = i * Mathf.PI / 4;
-            int rotatedX = Mathf.RoundToInt(currentDirection.x * Mathf.Cos(rotateAngle) + currentDirection.y * Mathf.Sin(rotateAngle));
-            int rotadedY = Mathf.RoundToInt(-currentDirection.x * Mathf.Sin(rotateAngle) + currentDirection.y * Mathf.Cos(rotateAngle));
-            Vector2Int newDirection = new Vector2Int(rotatedX, rotadedY);
+            for (int i = -angle; i <= angle; i++)
+            {
+                float rotateAngle = i * Mathf.PI / 4;
+                int rotatedX = Mathf.RoundToInt(currentDirection.x * Mathf.Cos(rotateAngle) + currentDirection.y * Mathf.Sin(rotateAngle));
+                int rotadedY = Mathf.RoundToInt(-currentDirection.x * Mathf.Sin(rotateAngle) + currentDirection.y * Mathf.Cos(rotateAngle));
+                Vector2Int newDirection = new Vector2Int(rotatedX, rotadedY);
 
-            cellPosition = currentCellIndex + newDirection;
-            possibleCells[i + angle] = cellPosition;
-            possibleFeromones[i + angle] = feromoneMatrix.GetSmell(cellPosition, feromonType);
-            // Debug.DrawLine(transform.position, transform.position + new Vector3(newDirection.x, newDirection.y) * 10, Color.yellow, 10);
-        }
+                cellPosition = currentCellIndex + newDirection;
+                if (feromoneMatrix.CheckMatrixContain(cellPosition))
+                {
+                    possibleCells.Add(cellPosition);
+                    possibleFeromones.Add(feromoneMatrix.GetSmell(cellPosition, feromonType));
+                }
+                // Debug.DrawLine(transform.position, transform.position + new Vector3(newDirection.x, newDirection.y) * 10, Color.yellow, 10);
+            }
 
-        // Debug.DrawLine(transform.position, transform.position + new Vector3(currentDirection.x, currentDirection.y) * 10, Color.red, 10);
+            // Debug.DrawLine(transform.position, transform.position + new Vector3(currentDirection.x, currentDirection.y) * 10, Color.red, 10);
+            if (possibleCells.Count == 0)
+                currentDirection = -currentDirection;
+
+        } while (possibleCells.Count == 0);
+
 
         float sumFeromone = 0;
-        float[] p = new float[possibleFeromones.Length];
+        float[] p = new float[possibleFeromones.Count];
 
-        for (int i = 0; i < possibleFeromones.Length; i++)
+        for (int i = 0; i < possibleFeromones.Count; i++)
         {
             p[i] =  possibleFeromones[i] + baseChanse;
-            sumFeromone += possibleFeromones[i] + baseChanse;
+            sumFeromone += p[i];
         }
 
         for (int i = 0; i < p.Length; i++)
@@ -114,4 +124,26 @@ public class Ant : MonoBehaviour
         feromoneMatrix.SetSmell(transform.position, (1 - (int)behaviorState), feromoneAmount);
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        string tag = collision.gameObject.tag;
+        if (tag == "Food" && behaviorState == BehaviorState.searching)
+        {
+            FoodSource food = collision.gameObject.GetComponent<FoodSource>();
+            food.foodAmount -= 1;
+
+            behaviorState = BehaviorState.carrying;
+            currentDirection = -currentDirection;
+
+        }
+        else if (tag == "AntHill" && behaviorState == BehaviorState.carrying)
+        {
+            AntHill antHill = collision.gameObject.GetComponent<AntHill>();
+            antHill.foodStorage += 1;
+
+            behaviorState = BehaviorState.searching;
+            currentDirection = -currentDirection;
+
+        }
+    }
 }

@@ -62,7 +62,7 @@ public class FeromoneMatrix : MonoBehaviour
         {
             for (int j = 0; j < matrixSize; j++)
             {
-                float feromon = feromoneMatrix[i, j, 1]; //!!!!!!!!!!!!!!!!!!!!!
+                float feromon = feromoneMatrix[i, j, 0];
                 Color color = Color.Lerp(Color.white, Color.red, feromon);
                 planeMatrix[i, j].GetComponent<Renderer>().material.color = color;
             }
@@ -107,6 +107,19 @@ public class FeromoneMatrix : MonoBehaviour
                 SetSmell(cell, 1, -evaporateAmount);
             }
         }
+    }
+
+    public bool CheckMatrixContain(Vector2Int cellIndex)
+    {
+        if (cellIndex.x >= 0 && cellIndex.x < matrixSize && cellIndex.y >= 0 && cellIndex.y < matrixSize)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
     }
 }
 

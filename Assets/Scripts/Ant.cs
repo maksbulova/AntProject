@@ -19,7 +19,7 @@ public class Ant : MonoBehaviour
     {
         feromoneMatrix = GameObject.FindObjectOfType<FeromoneMatrix>();
         behaviorState = BehaviorState.searching;
-        currentDirection = RandomDirection();
+        currentDirection = Vector2Int.up; // RandomDirection();
     }
 
     private void Update()
@@ -40,8 +40,15 @@ public class Ant : MonoBehaviour
         return new Vector2Int(x, y);
     }
 
-    public void Move(Vector3 movePosition)
+    public void Move(Vector2Int moveCell)
     {
+        Vector2Int currentCell = feromoneMatrix.GetCellIndex(transform.position);
+        currentDirection = moveCell - currentCell;
+
+        // Vector3 rayDirection = new Vector3(currentDirection.x, currentDirection.y);
+        // Debug.DrawRay(transform.position, transform.position + rayDirection * 10, Color.blue);
+
+        Vector3 movePosition = feromoneMatrix.GetCellPosition(moveCell);
         gameObject.transform.position = movePosition;   
     }
 
@@ -85,13 +92,16 @@ public class Ant : MonoBehaviour
 
         float rnd = Random.Range(0f, 1f);
         int chosenIndex = 0;
+        float pSum = 0;
+
         for (int i = 0; i < p.Length; i++)
         {
-            if (rnd < p[i])
+            if (rnd < p[i] + pSum)
             {
                 chosenIndex = i;
                 break;
             }
+            pSum += p[i];
         }
 
         return possibleCells[chosenIndex];
@@ -100,9 +110,7 @@ public class Ant : MonoBehaviour
     private void Act()
     {
         Vector2Int cell = ChooseCell((int)behaviorState);
-        Vector3 movePos = feromoneMatrix.GetCellPosition(cell);
-        Move(movePos);
-
+        Move(cell);
         feromoneMatrix.SetSmell(transform.position, (1 - (int)behaviorState), feromoneAmount);
     }
 

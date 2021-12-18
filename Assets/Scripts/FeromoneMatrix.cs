@@ -12,7 +12,7 @@ public class FeromoneMatrix : MonoBehaviour
     private float[,,] feromoneMatrix;
     private GameObject[,] planeMatrix;
 
-    private void Start()
+    private void Awake()
     {
         GenerateField();
         ColorFeromones();
@@ -43,14 +43,16 @@ public class FeromoneMatrix : MonoBehaviour
                 plane.transform.Rotate(-90, 0, 0);
                 plane.transform.localScale *= 0.1f * cellSize;
                 planeMatrix[i, j] = plane;
+                plane.name = $"({i}; {j})";
             }
         }
     }
 
     public Vector3 GetCellPosition(Vector2Int cellIndex)
     {
-        float x = (cellIndex.x + 0.5f) * cellSize;
-        float y = (cellIndex.y + 0.5f) * cellSize;
+        float offset = matrixSize * cellSize / 2;
+        float x = (cellIndex.x + 0.5f) * cellSize - offset;
+        float y = (cellIndex.y + 0.5f) * cellSize - offset;
         return new Vector3(x, y);
     }
 
@@ -60,7 +62,7 @@ public class FeromoneMatrix : MonoBehaviour
         {
             for (int j = 0; j < matrixSize; j++)
             {
-                float feromon = feromoneMatrix[i, j, 0];
+                float feromon = feromoneMatrix[i, j, 1]; //!!!!!!!!!!!!!!!!!!!!!
                 Color color = Color.Lerp(Color.white, Color.red, feromon);
                 planeMatrix[i, j].GetComponent<Renderer>().material.color = color;
             }
@@ -85,9 +87,14 @@ public class FeromoneMatrix : MonoBehaviour
     {
         Vector2Int cellIndex = GetCellIndex(position);
 
+        SetSmell(cellIndex, feromoneType, value);
+    }
+    public void SetSmell(Vector2Int cellIndex, int feromoneType, float value)
+    {
         float clamped = Mathf.Clamp(feromoneMatrix[cellIndex.x, cellIndex.y, feromoneType] += value, 0, 1);
         feromoneMatrix[cellIndex.x, cellIndex.y, feromoneType] = clamped;
     }
+
 
     private void Evaporate()
     {
@@ -95,8 +102,9 @@ public class FeromoneMatrix : MonoBehaviour
         {
             for (int j = 0; j < matrixSize; j++)
             {
-                feromoneMatrix[i, j, 0] -= evaporateAmount;
-                feromoneMatrix[i, j, 1] -= evaporateAmount;
+                Vector2Int cell = new Vector2Int(i, j);
+                SetSmell(cell, 0, -evaporateAmount);
+                SetSmell(cell, 1, -evaporateAmount);
             }
         }
     }

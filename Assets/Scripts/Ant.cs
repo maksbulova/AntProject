@@ -8,7 +8,7 @@ public class Ant : MonoBehaviour
     [Range(0, 4)] public int angle;
     public float feromoneAmount;
 
-    private const float baseChanse = 0.1f;
+    public float baseChanse;
 
     private enum BehaviorState{searching, carrying};
     private BehaviorState behaviorState;

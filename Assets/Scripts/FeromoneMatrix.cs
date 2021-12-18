@@ -10,7 +10,7 @@ public class FeromoneMatrix : MonoBehaviour
     public float evaporateAmount;
 
     private float[,,] feromoneMatrix;
-    private GameObject[,] planeMatrix;
+    private Renderer[,] planeMatrix;
 
     private void Awake()
     {
@@ -27,7 +27,7 @@ public class FeromoneMatrix : MonoBehaviour
     private void GenerateField()
     {
         feromoneMatrix = new float[matrixSize, matrixSize, 2];
-        planeMatrix = new GameObject[matrixSize, matrixSize];
+        planeMatrix = new Renderer[matrixSize, matrixSize];
 
         float offset = cellSize * matrixSize / 2;
 
@@ -42,7 +42,7 @@ public class FeromoneMatrix : MonoBehaviour
                 plane.transform.position = new Vector3(x - offset, y - offset);
                 plane.transform.Rotate(-90, 0, 0);
                 plane.transform.localScale *= 0.1f * cellSize;
-                planeMatrix[i, j] = plane;
+                planeMatrix[i, j] = plane.GetComponent<Renderer>();
                 plane.name = $"({i}; {j})";
             }
         }
@@ -62,9 +62,20 @@ public class FeromoneMatrix : MonoBehaviour
         {
             for (int j = 0; j < matrixSize; j++)
             {
-                float feromon = feromoneMatrix[i, j, 0];
-                Color color = Color.Lerp(Color.white, Color.red, feromon);
-                planeMatrix[i, j].GetComponent<Renderer>().material.color = color;
+                float feromonFood = feromoneMatrix[i, j, 0];
+                float feromonHome = feromoneMatrix[i, j, 1];
+                Color color;
+
+                if (feromonFood > 0)
+                {
+                    color = Color.Lerp(Color.white, Color.red, feromonFood);
+                }
+                else
+                {
+                    color = Color.Lerp(Color.white, Color.blue, feromonHome);
+                }
+                
+                planeMatrix[i, j].material.color = color;
             }
         }
     }

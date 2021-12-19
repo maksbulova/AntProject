@@ -8,6 +8,7 @@ public class FeromoneMatrix : MonoBehaviour
     public float cellSize;
     public int matrixSize;
     public float evaporateAmount;
+    public Material material;
 
     private float[,,] feromoneMatrix;
     private Renderer[,] planeMatrix;
@@ -42,6 +43,8 @@ public class FeromoneMatrix : MonoBehaviour
                 plane.transform.position = new Vector3(x - offset, y - offset);
                 plane.transform.Rotate(-90, 0, 0);
                 plane.transform.localScale *= 0.1f * cellSize;
+
+                plane.GetComponent<Renderer>().material = material;
                 planeMatrix[i, j] = plane.GetComponent<Renderer>();
                 plane.name = $"({i}; {j})";
             }

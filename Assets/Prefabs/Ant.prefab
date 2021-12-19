@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   angle: 1
-  feromoneAmount: 0.5
+  feromoneAmount: 0.1
   baseChanse: 0.01
 --- !u!58 &6788187324600931147
 CircleCollider2D:

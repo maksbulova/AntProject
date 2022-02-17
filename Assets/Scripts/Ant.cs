@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Ant : MonoBehaviour
 {
@@ -8,19 +9,23 @@ public class Ant : MonoBehaviour
     [Range(0, 4)] public int angle;
     public float feromoneAmount;
 
-    public float baseChanse;
+    public float baseChanse, forwardChanse;
+    public AnimationCurve turnCurve, homeCurve;
+    private Vector3 homePosition;
 
     private enum BehaviorState{searching, carrying};
     private BehaviorState behaviorState;
     private Vector2Int currentDirection;
-
 
     private void Start()
     {
         feromoneMatrix = GameObject.FindObjectOfType<FeromoneMatrix>();
         behaviorState = BehaviorState.searching;
         currentDirection = RandomDirection();
-        Debug.Log($"{gameObject.name} moves {currentDirection}");
+        // Debug.Log($"{gameObject.name} moves {currentDirection}");
+        homePosition = FindObjectOfType<AntHill>().transform.position;
+
+        //GetComponent<Renderer>().material.color = Random.ColorHSV();
     }
 
     private void Update()
@@ -56,13 +61,17 @@ public class Ant : MonoBehaviour
     public Vector2Int ChooseCell(int feromonType)
     {
         // int amount = (angle + 1) * 2 - 1;
-        List<Vector2Int> possibleCells = new List<Vector2Int>();
-        List<float> possibleFeromones = new List<float>();
-        Vector2Int currentCellIndex = feromoneMatrix.GetCellIndex(transform.position);
+        List<Vector2Int> possibleCells;
+        List<float> possibleFeromones;
+        Vector2Int currentCell;
         Vector2Int cellPosition;
 
         do
         {
+            possibleCells = new List<Vector2Int>();
+            possibleFeromones = new List<float>();
+            currentCell = feromoneMatrix.GetCellIndex(transform.position);
+
             for (int i = -angle; i <= angle; i++)
             {
                 float rotateAngle = i * Mathf.PI / 4;
@@ -70,7 +79,7 @@ public class Ant : MonoBehaviour
                 int rotadedY = Mathf.RoundToInt(-currentDirection.x * Mathf.Sin(rotateAngle) + currentDirection.y * Mathf.Cos(rotateAngle));
                 Vector2Int newDirection = new Vector2Int(rotatedX, rotadedY);
 
-                cellPosition = currentCellIndex + newDirection;
+                cellPosition = currentCell + newDirection;
                 if (feromoneMatrix.CheckMatrixContain(cellPosition))
                 {
                     possibleCells.Add(cellPosition);
@@ -88,10 +97,53 @@ public class Ant : MonoBehaviour
 
         float sumFeromone = 0;
         float[] p = new float[possibleFeromones.Count];
+        Vector2Int forwardCell = currentCell + currentDirection;
+
+        
+        if (possibleCells.Contains(forwardCell))
+        {
+            int forwardndex = possibleCells.IndexOf(forwardCell);
+            p[forwardndex] += forwardChanse;
+
+        }
+
+
 
         for (int i = 0; i < possibleFeromones.Count; i++)
         {
-            p[i] =  possibleFeromones[i] + baseChanse;
+            // чем направление дальше от "вперед", тем оно менее привлекательно
+            /*
+            Vector2Int dir = possibleCells[i] - currentCell;
+            float angleDif = Vector2.Angle(currentDirection, dir);
+            float t = Mathf.InverseLerp(0, angle * Mathf.PI, angleDif);
+            float turnKoof = turnCurve.Evaluate(t);
+            */
+            p[i] += (possibleFeromones[i] + baseChanse);
+
+        }
+
+        if (behaviorState == BehaviorState.carrying)
+        {
+            float[] homeOrientir = new float[possibleCells.Count];
+            for (int i = 0; i < homeOrientir.Length; i++)
+            {
+                homeOrientir[i] = (feromoneMatrix.GetCellPosition(possibleCells[i]) - homePosition).sqrMagnitude;
+            }
+            float min = homeOrientir.Min();
+            float max = homeOrientir.Max();
+
+            for (int i = 0; i < homeOrientir.Length; i++)
+            {
+                homeOrientir[i] = (homeOrientir[i] - min) / (max - min);
+
+
+                p[i] *= homeCurve.Evaluate(homeOrientir[i]);
+            }
+
+        }
+
+        for (int i = 0; i < p.Length; i++)
+        {
             sumFeromone += p[i];
         }
 
@@ -99,6 +151,7 @@ public class Ant : MonoBehaviour
         {
             p[i] /= sumFeromone;
         }
+
 
         float rnd = Random.Range(0f, 1f);
         int chosenIndex = 0;

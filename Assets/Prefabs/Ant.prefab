@@ -97,9 +97,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20e9baa39358ee940b1f6a46a50089b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  angle: 1
+  angle: 2
   feromoneAmount: 0.1
-  baseChanse: 0.01
+  baseChanse: 0.0001
+  forwardChanse: 0.001
+  turnCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  homeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: -0.9
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.1
+      inSlope: -0.9
+      outSlope: 0
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!58 &6788187324600931147
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -110,7 +141,7 @@ CircleCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}

@@ -5,12 +5,17 @@ using System.Linq;
 
 public class Ant : MonoBehaviour
 {
-    private FeromoneMatrix feromoneMatrix;
-    [Range(0, 4)] public int angle;
-    public float feromoneAmount;
+    [Header("Parametrs")]
+    [SerializeField, Range(0, 4)] private int turnAngle;
+    [SerializeField] private float feromoneAmount;
 
-    public float baseChanse, forwardChanse;
-    public AnimationCurve turnCurve, homeCurve;
+    [Header("Agent coefficient")]
+    [SerializeField] private float sideChanse;
+    [SerializeField] private float forwardChanse;
+    [SerializeField] private AnimationCurve turnCurve;
+    [SerializeField] private AnimationCurve homeCurve;
+
+    private FeromoneMatrix feromoneMatrix;
     private Vector3 homePosition;
 
     private enum BehaviorState{searching, carrying};
@@ -24,8 +29,6 @@ public class Ant : MonoBehaviour
         currentDirection = RandomDirection();
         // Debug.Log($"{gameObject.name} moves {currentDirection}");
         homePosition = FindObjectOfType<AntHill>().transform.position;
-
-        //GetComponent<Renderer>().material.color = Random.ColorHSV();
     }
 
     private void Update()
@@ -51,16 +54,12 @@ public class Ant : MonoBehaviour
         Vector2Int currentCell = feromoneMatrix.GetCellIndex(transform.position);
         currentDirection = moveCell - currentCell;
 
-        // Vector3 rayDirection = new Vector3(currentDirection.x, currentDirection.y);
-        // Debug.DrawRay(transform.position, transform.position + rayDirection * 10, Color.blue);
-
         Vector3 movePosition = feromoneMatrix.GetCellPosition(moveCell);
         gameObject.transform.position = movePosition;   
     }
 
     public Vector2Int ChooseCell(int feromonType)
     {
-        // int amount = (angle + 1) * 2 - 1;
         List<Vector2Int> possibleCells;
         List<float> possibleFeromones;
         Vector2Int currentCell;
@@ -72,7 +71,7 @@ public class Ant : MonoBehaviour
             possibleFeromones = new List<float>();
             currentCell = feromoneMatrix.GetCellIndex(transform.position);
 
-            for (int i = -angle; i <= angle; i++)
+            for (int i = -turnAngle; i <= turnAngle; i++)
             {
                 float rotateAngle = i * Mathf.PI / 4;
                 int rotatedX = Mathf.RoundToInt(currentDirection.x * Mathf.Cos(rotateAngle) + currentDirection.y * Mathf.Sin(rotateAngle));
@@ -85,12 +84,13 @@ public class Ant : MonoBehaviour
                     possibleCells.Add(cellPosition);
                     possibleFeromones.Add(feromoneMatrix.GetSmell(cellPosition, feromonType));
                 }
-                // Debug.DrawLine(transform.position, transform.position + new Vector3(newDirection.x, newDirection.y) * 10, Color.yellow, 10);
             }
 
-            // Debug.DrawLine(transform.position, transform.position + new Vector3(currentDirection.x, currentDirection.y) * 10, Color.red, 10);
+            // Met world`s bounds, turn back.
             if (possibleCells.Count == 0)
+            {
                 currentDirection = -currentDirection;
+            }
 
         } while (possibleCells.Count == 0);
 
@@ -111,14 +111,14 @@ public class Ant : MonoBehaviour
 
         for (int i = 0; i < possibleFeromones.Count; i++)
         {
-            // чем направление дальше от "вперед", тем оно менее привлекательно
+            // Smaller turn angle is more attractive.
             /*
             Vector2Int dir = possibleCells[i] - currentCell;
             float angleDif = Vector2.Angle(currentDirection, dir);
             float t = Mathf.InverseLerp(0, angle * Mathf.PI, angleDif);
             float turnKoof = turnCurve.Evaluate(t);
             */
-            p[i] += (possibleFeromones[i] + baseChanse);
+            p[i] += (possibleFeromones[i] + sideChanse);
 
         }
 
@@ -183,7 +183,7 @@ public class Ant : MonoBehaviour
         if (tag == "Food" && behaviorState == BehaviorState.searching)
         {
             FoodSource food = collision.gameObject.GetComponent<FoodSource>();
-            food.foodAmount -= 1;
+            food.TakeFood();
 
             behaviorState = BehaviorState.carrying;
             currentDirection = -currentDirection;

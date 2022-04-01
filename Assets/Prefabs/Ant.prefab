@@ -97,9 +97,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20e9baa39358ee940b1f6a46a50089b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  angle: 2
+  turnAngle: 2
   feromoneAmount: 0.1
-  baseChanse: 0.0001
+  sideChanse: 0.001
   forwardChanse: 0.001
   turnCurve:
     serializedVersion: 2
